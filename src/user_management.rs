@@ -14,8 +14,6 @@ blueprint! {
         sbt_address: ResourceAddress,
         /// This is the user record registry. It is meant to allow people to query the users that belongs to this protocol.
         user_record: HashMap<NonFungibleId, User>,
-        /// Keeps a record of wallet addresses to ensure that maps 1 SBT to 1 Wallet.
-        account_record: Vec<ComponentAddress>,
     }
 
     /// Instantiates the User Management component. This is instantiated through the main router component. 
@@ -66,7 +64,6 @@ blueprint! {
                 sbt_badge_vault: Vault::with_bucket(sbt_badge),
                 sbt_address: sbt_data,
                 user_record: HashMap::new(),
-                account_record: Vec::new(),
             }
             .instantiate()
             .add_access_check(access_rules)
@@ -94,11 +91,9 @@ blueprint! {
         /// # Returns:
         /// 
         /// * `Bucket` - This is the SBT the user receives from creating a new user.
-        pub fn new_user(&mut self, account_address: ComponentAddress) -> Bucket {
-
-            // Checks whether the account address has already registered an SBT
-            assert_ne!(self.account_record.contains(&account_address), true, "SBT already created for this account.");
-            
+        pub fn new_user(&mut self
+        ) -> Bucket 
+        {            
             // Mint NFT to give to users as identification 
             let user_nft = self.sbt_badge_vault.authorize(|| {
                 let resource_manager: &ResourceManager = borrow_resource_manager!(self.sbt_address);
@@ -124,7 +119,6 @@ blueprint! {
                 let user_id: NonFungibleId = user_nft.non_fungible::<User>().id();
                 let user: User = user_nft.non_fungible().data();
                 self.user_record.insert(user_id, user);
-                self.account_record.push(account_address);
             }
 
             // Returns NFT to user

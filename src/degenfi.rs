@@ -1,4 +1,5 @@
 use scrypto::prelude::*;
+use radex::radex::*;
 use crate::lending_pool::*;
 use crate::radiswap::*;
 use crate::collateral_pool::*;
@@ -24,6 +25,7 @@ blueprint! {
         pseudopriceoracle_address: ComponentAddress,
         // Radiswap component address
         radiswap_address: Option<ComponentAddress>,
+        radex_address: Option<ComponentAddress>,
         // Access Admin Badge used to mint/burn Access Tokens
         access_auth_vault: Vault,
         // Access Tokens are used to be able to make permissioned calls between Blueprints
@@ -37,7 +39,7 @@ blueprint! {
         // Contains the initial supply of Degen Tokens
         degen_token_vault: Vault,
         // Resource address of the SBT
-        sbt_address: Vec<ResourceAddress>,
+        sbt_address: Option<ResourceAddress>,
         //Flash loan admin badge
         flash_loan_auth_vault: Vault,
         // Flash loan resource address
@@ -118,13 +120,14 @@ blueprint! {
                 user_management_address: UserManagement::new(access_badge.resource_address()),
                 pseudopriceoracle_address: PseudoPriceOracle::new(),
                 radiswap_address: None,
+                radex_address: None,
                 access_auth_vault: Vault::with_bucket(access_admin),
                 access_badge_vault: Vault::with_bucket(access_badge),
                 access_badge_address: access_badge_address,
                 degen_auth_vault: Vault::with_bucket(degen_badge),
                 degen_token_address: degen_token.resource_address(),
                 degen_token_vault: Vault::with_bucket(degen_token),
-                sbt_address: Vec::new(),
+                sbt_address: None,
                 flash_loan_auth_vault: Vault::with_bucket(flash_loan_token),
                 flash_loan_address: flash_loan_address,
                 bad_loans: HashMap::new(),
@@ -156,14 +159,13 @@ blueprint! {
         /// * `Bucket` - Users are rewarded 1 bonus Degen Tokens for the initial creation of their SBT.
         pub fn new_user(
             &mut self,
-            account_address: ComponentAddress
         ) -> (Bucket, Bucket)
         {
             // Retrieves User Management component.
             let user_management: UserManagement = self.user_management_address.into();
             // Makes authorized method call to create a new user for the protocol.
             let new_user: Bucket = self.access_badge_vault.authorize(|| 
-                user_management.new_user(account_address)
+                user_management.new_user()
             );
             // User receives 1 Degen Token for creating a user
             let degen_token = self.degen_token_vault.take(dec!("1"));
@@ -172,7 +174,7 @@ blueprint! {
             info!(
                 "Thank you for registering an account at DegenFi, here are {:?} Degen Tokens for you to start!", degen_token.amount());
             // Registers the resource address the SBT   
-            self.sbt_address.push(new_user.resource_address());
+            self.sbt_address.get_or_insert(new_user.resource_address());
 
             (new_user, degen_token)
         }
@@ -434,7 +436,9 @@ blueprint! {
         )
         {
             // Checks if user belongs to this protocol.
-            assert_eq!(self.sbt_address.contains(&user_auth.resource_address()), true, "User does not belong to this protocol.");
+            assert_eq!(user_auth.resource_address(), self.sbt_address.unwrap(), 
+                "User does not belong to this protocol."
+            );
 
             let access_badge = self.access_auth_vault.authorize(|| borrow_resource_manager!(self.access_badge_address).mint(Decimal::one()));
 
@@ -460,7 +464,7 @@ blueprint! {
         ) -> (Bucket, Bucket)
         {
             // Checks if user belongs to this protocol.
-            assert_eq!(self.sbt_address.contains(&user_auth.resource_address()), true, 
+            assert_eq!(user_auth.resource_address(), self.sbt_address.unwrap(), 
             "User does not belong to this protocol.");
 
             let user_id = self.get_user(&user_auth);
@@ -478,7 +482,7 @@ blueprint! {
         ) -> Bucket
         {
             // Checks if user belongs to this protocol.
-            assert_eq!(self.sbt_address.contains(&user_auth.resource_address()), true, 
+            assert_eq!(user_auth.resource_address(), self.sbt_address.unwrap(), 
             "User does not belong to this protocol.");
 
             let collateral_pool_address: ComponentAddress = *self.collateral_pool_address.get(&collateral_address).unwrap();
@@ -510,7 +514,7 @@ blueprint! {
         ) -> Bucket
         {
             // Checks if user belongs to this protocol.
-            assert_eq!(self.sbt_address.contains(&user_auth.resource_address()), true, 
+            assert_eq!(user_auth.resource_address(), self.sbt_address.unwrap(), 
             "User does not belong to this protocol.");
 
             let user_id = self.get_user(&user_auth);
@@ -549,7 +553,7 @@ blueprint! {
         ) -> Bucket
         {
             // Checks if user belongs to this protocol.
-            assert_eq!(self.sbt_address.contains(&user_auth.resource_address()), true, "User does not belong to this protocol.");
+            assert_eq!(user_auth.resource_address(), self.sbt_address.unwrap(), "User does not belong to this protocol.");
 
             // Retrieves the User Management component.
             let user_management = self.user_management_address.into();
@@ -644,7 +648,7 @@ blueprint! {
         ) -> Bucket
         {
             // Checks if user belongs to this protocol.
-            assert_eq!(self.sbt_address.contains(&user_auth.resource_address()), true, "User does not belong to this protocol.");
+            assert_eq!(user_auth.resource_address(), self.sbt_address.unwrap(), "User does not belong to this protocol.");
             // Retrieve resource address of the deposit
             let token_address: ResourceAddress = deposit_amount.resource_address(); 
             // Checks if the user exists
@@ -699,7 +703,7 @@ blueprint! {
         ) -> Bucket
         {
             // Checks if user belongs to this protocol.
-            assert_eq!(self.sbt_address.contains(&user_auth.resource_address()), true, "User does not belong to this protocol.");
+            assert_eq!(user_auth.resource_address(), self.sbt_address.unwrap(), "User does not belong to this protocol.");
             // Retrieves token address of the amount sent
             let token_address: ResourceAddress = amount.resource_address(); 
             // Checks if the user exists
@@ -754,7 +758,7 @@ blueprint! {
         ) -> Bucket
         { 
             // Checks if user belongs to this protocol.
-            assert_eq!(self.sbt_address.contains(&user_auth.resource_address()), true, "User does not belong to this protocol.");
+            assert_eq!(user_auth.resource_address(), self.sbt_address.unwrap(), "User does not belong to this protocol.");
 
             // Checks if the user exists.
             let user_id = self.get_user(&user_auth);
@@ -813,7 +817,7 @@ blueprint! {
         )
         {
             // Checks if user belongs to this protocol.
-            assert_eq!(self.sbt_address.contains(&user_auth.resource_address()), true, "User does not belong to this protocol.");
+            assert_eq!(user_auth.resource_address(), self.sbt_address.unwrap(), "User does not belong to this protocol.");
 
             // Checks if the user exists
             let user_id = self.get_user(&user_auth);
@@ -863,7 +867,7 @@ blueprint! {
         )
         {
             // Checks if user belongs to this protocol.
-            assert_eq!(self.sbt_address.contains(&user_auth.resource_address()), true, "User does not belong to this protocol.");
+            assert_eq!(user_auth.resource_address(), self.sbt_address.unwrap(), "User does not belong to this protocol.");
 
             // Checks if the user exists
             let user_id = self.get_user(&user_auth);
@@ -914,7 +918,7 @@ blueprint! {
         ) -> (Bucket, Bucket, Bucket)
         {
             // Checks if user belongs to this protocol.
-            assert_eq!(self.sbt_address.contains(&user_auth.resource_address()), true, "User does not belong to this protocol.");
+            assert_eq!(user_auth.resource_address(), self.sbt_address.unwrap(), "User does not belong to this protocol.");
 
             // Checks if the user exists.
             let user_id = self.get_user(&user_auth);
@@ -969,7 +973,7 @@ blueprint! {
         ) -> (Bucket, Bucket)
         {
             // Checks if user belongs to this protocol.
-            assert_eq!(self.sbt_address.contains(&user_auth.resource_address()), true, "User does not belong to this protocol.");
+            assert_eq!(user_auth.resource_address(), self.sbt_address.unwrap(), "User does not belong to this protocol.");
 
             // Checks if the user exists
             let user_id = self.get_user(&user_auth);
@@ -1080,7 +1084,7 @@ blueprint! {
         ) -> Bucket 
         {
             // Checks if user belongs to this protocol.
-            assert_eq!(self.sbt_address.contains(&user_auth.resource_address()), true, "User does not belong to this protocol.");
+            assert_eq!(user_auth.resource_address(), self.sbt_address.unwrap(), "User does not belong to this protocol.");
 
             // Checks if the user exists
             let user_id = self.get_user(&user_auth);
@@ -1129,7 +1133,7 @@ blueprint! {
         ) -> Bucket
         {
             // Checks if user belongs to this protocol.
-            assert_eq!(self.sbt_address.contains(&user_auth.resource_address()), true, "User does not belong to this protocol.");
+            assert_eq!(user_auth.resource_address(), self.sbt_address.unwrap(), "User does not belong to this protocol.");
 
             // Checks if the user exists
             let user_id = self.get_user(&user_auth);
@@ -1179,7 +1183,7 @@ blueprint! {
         ) -> (Bucket, Bucket) 
         {
             // Checks if user belongs to this protocol.
-            assert_eq!(self.sbt_address.contains(&user_auth.resource_address()), true, "User does not belong to this protocol.");
+            assert_eq!(user_auth.resource_address(), self.sbt_address.unwrap(), "User does not belong to this protocol.");
 
             // Checks if the user exists
             let user_id = self.get_user(&user_auth);
@@ -1235,7 +1239,7 @@ blueprint! {
         ) -> Bucket 
         {
             // Checks if user belongs to this protocol.
-            assert_eq!(self.sbt_address.contains(&user_auth.resource_address()), true, "User does not belong to this protocol.");
+            assert_eq!(user_auth.resource_address(), self.sbt_address.unwrap(), "User does not belong to this protocol.");
 
             // Checks if the user exists
             let user_id = self.get_user(&user_auth);
@@ -1644,7 +1648,7 @@ blueprint! {
         )
         {
             // Checks if user belongs to this protocol.
-            assert_eq!(self.sbt_address.contains(&user_auth.resource_address()), true, "User does not belong to this protocol.");
+            assert_eq!(user_auth.resource_address(), self.sbt_address.unwrap(), "User does not belong to this protocol.");
             let user_id = self.get_user(&user_auth);
             let user_management: UserManagement = self.user_management_address.into();
             user_management.set_credit_score(user_id, credit_score);
@@ -1670,7 +1674,7 @@ blueprint! {
         )
         {
             // Checks if user belongs to this protocol.
-            assert_eq!(self.sbt_address.contains(&user_auth.resource_address()), true, "User does not belong to this protocol.");
+            assert_eq!(user_auth.resource_address(), self.sbt_address.unwrap(), "User does not belong to this protocol.");
 
             let user_id = self.get_user(&user_auth);
             let user_management: UserManagement = self.user_management_address.into();

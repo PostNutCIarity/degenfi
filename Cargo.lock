@@ -139,6 +139,7 @@ dependencies = [
 name = "degenfi"
 version = "0.1.0"
 dependencies = [
+ "radex",
  "radix-engine",
  "sbor",
  "scrypto",
@@ -434,6 +435,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3bcdf212e9776fbcb2d23ab029360416bb1706b1aea2d1a5ba002727cbcab804"
 dependencies = [
  "proc-macro2",
+]
+
+[[package]]
+name = "radex"
+version = "0.2.0"
+source = "git+https://github.com/PostNutCIarity/RaDEX.git#eaa732d45fe369aba7e53ab07dbb5b369657b7d6"
+dependencies = [
+ "sbor",
+ "scrypto",
 ]
 
 [[package]]
