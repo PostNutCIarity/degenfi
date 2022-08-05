@@ -438,8 +438,8 @@ dependencies = [
 
 [[package]]
 name = "radix-engine"
-version = "0.4.0"
-source = "git+https://github.com/radixdlt/radixdlt-scrypto?tag=v0.4.0#6c17276f20efbb8b970ffad82813ca1f28de14a6"
+version = "0.4.1"
+source = "git+https://github.com/radixdlt/radixdlt-scrypto?tag=v0.4.1#8c176b71b63db028d8c87c4d3db2934786dac22a"
 dependencies = [
  "bencher",
  "colored",
@@ -476,8 +476,8 @@ checksum = "f3f6f92acf49d1b98f7a81226834412ada05458b7364277387724a237f062695"
 
 [[package]]
 name = "sbor"
-version = "0.4.0"
-source = "git+https://github.com/radixdlt/radixdlt-scrypto?tag=v0.4.0#6c17276f20efbb8b970ffad82813ca1f28de14a6"
+version = "0.4.1"
+source = "git+https://github.com/radixdlt/radixdlt-scrypto?tag=v0.4.1#8c176b71b63db028d8c87c4d3db2934786dac22a"
 dependencies = [
  "hex",
  "sbor-derive",
@@ -486,8 +486,8 @@ dependencies = [
 
 [[package]]
 name = "sbor-derive"
-version = "0.4.0"
-source = "git+https://github.com/radixdlt/radixdlt-scrypto?tag=v0.4.0#6c17276f20efbb8b970ffad82813ca1f28de14a6"
+version = "0.4.1"
+source = "git+https://github.com/radixdlt/radixdlt-scrypto?tag=v0.4.1#8c176b71b63db028d8c87c4d3db2934786dac22a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -497,8 +497,8 @@ dependencies = [
 
 [[package]]
 name = "scrypto"
-version = "0.4.0"
-source = "git+https://github.com/radixdlt/radixdlt-scrypto?tag=v0.4.0#6c17276f20efbb8b970ffad82813ca1f28de14a6"
+version = "0.4.1"
+source = "git+https://github.com/radixdlt/radixdlt-scrypto?tag=v0.4.1#8c176b71b63db028d8c87c4d3db2934786dac22a"
 dependencies = [
  "cargo_toml",
  "hex",
@@ -514,8 +514,8 @@ dependencies = [
 
 [[package]]
 name = "scrypto-abi"
-version = "0.4.0"
-source = "git+https://github.com/radixdlt/radixdlt-scrypto?tag=v0.4.0#6c17276f20efbb8b970ffad82813ca1f28de14a6"
+version = "0.4.1"
+source = "git+https://github.com/radixdlt/radixdlt-scrypto?tag=v0.4.1#8c176b71b63db028d8c87c4d3db2934786dac22a"
 dependencies = [
  "sbor",
  "serde",
@@ -523,8 +523,8 @@ dependencies = [
 
 [[package]]
 name = "scrypto-derive"
-version = "0.4.0"
-source = "git+https://github.com/radixdlt/radixdlt-scrypto?tag=v0.4.0#6c17276f20efbb8b970ffad82813ca1f28de14a6"
+version = "0.4.1"
+source = "git+https://github.com/radixdlt/radixdlt-scrypto?tag=v0.4.1#8c176b71b63db028d8c87c4d3db2934786dac22a"
 dependencies = [
  "proc-macro2",
  "quote",
