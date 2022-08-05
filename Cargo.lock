@@ -3,15 +3,6 @@
 version = 3
 
 [[package]]
-name = "DegenFi"
-version = "0.1.0"
-dependencies = [
- "radix-engine",
- "sbor",
- "scrypto",
-]
-
-[[package]]
 name = "ahash"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -142,6 +133,15 @@ checksum = "b1d1a86f49236c215f271d40892d5fc950490551400b02ef360692c29815c714"
 dependencies = [
  "generic-array",
  "subtle",
+]
+
+[[package]]
+name = "degenfi"
+version = "0.1.0"
+dependencies = [
+ "radix-engine",
+ "sbor",
+ "scrypto",
 ]
 
 [[package]]
